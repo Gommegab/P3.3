@@ -20,7 +20,8 @@ public class PlayerNetwork : NetworkBehaviour
         if (!IsOwner) return;
         if (NetworkManager.Singleton.IsServer)
         {
-            IdMaterial.Value = GenerarColor();
+            int tempNum = GenerarColor();
+            IdMaterial.Value = tempNum != -1 ? tempNum : IdMaterial.Value;
             GetComponent<Renderer>().material.color = colorPlayer[IdMaterial.Value];
         }
         else
@@ -33,8 +34,9 @@ public class PlayerNetwork : NetworkBehaviour
     [ServerRpc]
     void ChangeColorServerRpc()
     {
-        IdMaterial.Value = GenerarColor();
-
+        int tempNum = GenerarColor();
+        IdMaterial.Value = tempNum != -1 ?  tempNum:IdMaterial.Value ;
+      
     }
     private void Update()
     {
@@ -54,6 +56,7 @@ public class PlayerNetwork : NetworkBehaviour
             numeros.Add(NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(uid).GetComponent<PlayerNetwork>().IdMaterial.Value);
 
         }
+
         if (numeros.Count <= 0)
         {
             return nu;
@@ -61,27 +64,32 @@ public class PlayerNetwork : NetworkBehaviour
         else if (numeros.Count > 10)
         {
             Debug.Log("No se pueden generar más números aleatorios. Jugador es fuera de la partida");
-            return 0;
+
+            return -1;
         }
         else
         {
-            // generar números aleatorios mientras haya números posibles que no se hayan generado
             while (numeros.Count < colorPlayer.Count)
             {
-                nu = Random.Range(0, colorPlayer.Count); // generar un número aleatorio entre 0 y 9
+                nu = Random.Range(0, colorPlayer.Count);
 
-                // si el número generado ya está en la lista, generar otro número aleatorio
                 if (!numeros.Contains(nu))
                 {
                     Debug.Log($"Número generado: { nu}");
-
                     break;
                 }
             }
-
             return nu;
-
         }
+    }
+
+
+    void CloseClient()
+    {
+        //NetworkManager.Singleton.StopClient(); no existe en esta version y en la documentacion asocia a 
+        //NetworkManager.Singleton.Shutdown(); pero este cierra la conexion del servidor
+        //TODO 
+        
     }
 
 }
